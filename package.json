@@ -4,5 +4,8 @@
   "main": "index.js",
   "author": "Kyrylo Stas vesrgound@gmail.com",
   "license": "MIT",
-  "private": true
+  "private": true,
+  "scripts": {
+    "start": "node app.js"
+  }
 }
