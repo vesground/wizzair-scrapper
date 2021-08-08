@@ -4,7 +4,7 @@ require('app-module-path').addPath(path.join(__dirname, '..'));
 const telegram = require('integrations/telegram.js');
 const fs = require('fs');
 const WizzAPI = require('integrations/wizz');
-const {strMapToObj} = require('utils.js');
+const {formatDate} = require('utils.js');
 const {FLIGHTS_FROM, FLIGHTS_TO} = require('scripts/connections');
 
 function getWizzDate(date = new Date()) {
@@ -18,7 +18,7 @@ function getNiceTelegramMsg(flightsByConnection) {
       const msg = [connection];
       
       return msg
-        .concat(flights.map(flight => `${flight.fly_at} - €${flight.price}`))
+        .concat(flights.map(flight => `${formatDate(flight.fly_at)} - €${flight.price}`))
         .flat()
         .join('\n');
     });
@@ -35,7 +35,6 @@ async function scrapeWizzPricesForPeriodRange(direction, startAt, endAt) {
     .map(({iata, connections}) => connections.map(connection => ({departure: iata, arrival: connection.iata})))
     .flat()
     .map(flight => WizzAPI.getPricesPeriod(flight.departure, flight.arrival, depDateFrom, depDateTo));
-
   const flightsByConnection = await Promise.all(priceRequests);
 
   // console.log(JSON.stringify(flightsByConnection, null, 2));

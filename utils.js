@@ -65,10 +65,33 @@ async function waitUntil(getCondition) {
   }
 }
 
+const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const months = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+const getAbbrev = entity => entity.substring(0, 3);
+
+function formatDate(date) {
+  date = new Date(date);
+  return `${getAbbrev(days[date.getDay()])}, ${date.getDate()} ${getAbbrev(months[date.getMonth()])}`;
+}
+
 module.exports = {
   execShellCommand,
   asyncRequest,
   strMapToObj,
   objToStrMap,
   waitUntil,
+  formatDate,
 }
