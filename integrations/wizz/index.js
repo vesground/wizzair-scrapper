@@ -42,11 +42,15 @@ async function getCookie(cache = true) {
   }
 }
 
-async function getConnectionPricesForPeriod(departure, arrival, depDateFrom, depDateTo) {
+async function getConnectionPricesForPeriod(departure, arrival, depDateFrom, depDateTo, maxPrice) {
   apiUrl = await getAPIVersionUrl();
   cookie = await getCookie();
 
-  const outboundFlights = await connection.fetchForPeriod(apiUrl, cookie, {departure, arrival, depDateFrom, depDateTo});
+  let outboundFlights = await connection.fetchForPeriod(apiUrl, cookie, {departure, arrival, depDateFrom, depDateTo});
+
+  if (maxPrice) {
+    outboundFlights = connection.filterByMaxPrice(outboundFlights, maxPrice);
+  }
 
   const plan = `${departure} -> ${arrival}`;
   return connection.format(plan, outboundFlights)

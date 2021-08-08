@@ -24,18 +24,17 @@ function getNiceTelegramMsg(flightsByConnection) {
     });
 }
 
-async function getWizzPrices(direction, startAt, endAt) {
+async function getWizzPrices(direction, startAt, endAt, maxPrice) {
   // const map = await WizzApi.getMap();
   // console.info('Successfully extracted a new map.');
 
   const depDateFrom = getWizzDate(startAt);
   const depDateTo = getWizzDate(endAt);
-  const priceMax = 50;
 
   const priceRequests = direction
     .map(({iata, connections}) => connections.map(connection => ({departure: iata, arrival: connection.iata})))
     .flat()
-    .map(flight => WizzAPI.getConnectionPricesForPeriod(flight.departure, flight.arrival, depDateFrom, depDateTo));
+    .map(flight => WizzAPI.getConnectionPricesForPeriod(flight.departure, flight.arrival, depDateFrom, depDateTo, maxPrice));
   const flightsByConnection = await Promise.all(priceRequests);
 
   // console.log(JSON.stringify(flightsByConnection, null, 2));
@@ -45,8 +44,10 @@ async function getWizzPrices(direction, startAt, endAt) {
 
 async function main() {
   const timerange = [new Date("2022-09-20"), new Date("2022-10-04")];
-  const flightsToByConnection = await getWizzPrices(FLIGHTS_TO, timerange[0], timerange[1]);
-  const flightsFromByConnection = await getWizzPrices(FLIGHTS_FROM, timerange[0], timerange[1]);
+  const maxPrice = 50;
+
+  const flightsToByConnection = await getWizzPrices(FLIGHTS_TO, timerange[0], timerange[1], maxPrice);
+  const flightsFromByConnection = await getWizzPrices(FLIGHTS_FROM, timerange[0], timerange[1], maxPrice);
 
   await Promise.all(getNiceTelegramMsg(flightsToByConnection).map(msg => telegram.send(msg)));
   await Promise.all(getNiceTelegramMsg(flightsFromByConnection).map(msg => telegram.send(msg)));

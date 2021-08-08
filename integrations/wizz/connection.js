@@ -21,10 +21,6 @@ function format(plan, rawFlights) {
 
   const flights = rawFlights
     .map(flight => {
-      // Implement when:
-      // price: null
-      if (flight.priceType === 'soldOut') return;
-
       return flight.departureDates.map(departureDate => ({
         plan,
         fly_at: departureDate,
@@ -32,7 +28,6 @@ function format(plan, rawFlights) {
         currency: flight.price.currencyCode,
       }));
     })
-    .filter(Boolean)
     .flat();
 
   return {
@@ -101,10 +96,21 @@ async function fetchForPeriod(apiUrl, cookie, params = {}) {
 
   console.info(`Successfully extracted data for: ${params.departure} -> ${params.arrival}, at ${params.depDateFrom} - ${params.depDateTo}`);
 
-  return outboundFlights;
+  return filterOutSoldout(outboundFlights);
+}
+
+function filterOutSoldout(flights) {
+  // Implement when:
+  // price: null
+  return flights.filter(flight => flight.priceType !== 'soldOut');
+}
+
+function filterByMaxPrice(flights, maxPrice) {
+  return flights.filter(flight => flight.price.amount < maxPrice);
 }
 
 module.exports = {
   format,
   fetchForPeriod,
+  filterByMaxPrice
 }
