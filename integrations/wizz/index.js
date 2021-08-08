@@ -43,7 +43,7 @@ async function getCookie(cache = true) {
   }
 }
 
-function parsePlanFlights(plan, rawFlights) {
+function formatConnection(plan, rawFlights) {
   // {
   //   "KEF -> FCO": [
   //     {
@@ -82,7 +82,7 @@ function parsePlanFlights(plan, rawFlights) {
   }
 }
 
-async function getPricesPeriod(departure, arrival, depDateFrom, depDateTo) {
+async function getConnectionPricesForPeriod(departure, arrival, depDateFrom, depDateTo) {
   apiUrl = await getAPIVersionUrl();
   cookie = await getCookie();
 
@@ -147,11 +147,11 @@ async function getPricesPeriod(departure, arrival, depDateFrom, depDateTo) {
   console.info(`Successfully extracted data for: ${departure} -> ${arrival}, at ${depDateFrom} - ${depDateTo}`);
 
   const plan = `${departure} -> ${arrival}`;
-  return parsePlanFlights(plan, parsedBody.outboundFlights)
+  return formatConnection(plan, parsedBody.outboundFlights)
 }
 
 module.exports = {
   getAPIVersionUrl,
   getCookie,
-  getPricesPeriod,
+  getConnectionPricesForPeriod,
 };
