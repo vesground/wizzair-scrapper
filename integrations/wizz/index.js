@@ -1,7 +1,6 @@
 const {fetchMeta, parseMeta} = require('integrations/wizz/meta');
-const {asyncRequest, execShellCommand, waitUntil} = require('utils.js');
-
-const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.110 Safari/537.36';
+const connection = require('integrations/wizz/connection');
+const {execShellCommand, waitUntil} = require('utils.js');
 
 let apiUrl = null;
 let hasStartedCookieReq = false;
@@ -43,111 +42,14 @@ async function getCookie(cache = true) {
   }
 }
 
-function formatConnection(plan, rawFlights) {
-  // {
-  //   "KEF -> FCO": [
-  //     {
-  //       "plan": "KEF -> FCO",
-  //       "fly_at": "2022-09-21T19:20:00",
-  //       "price": 59.99,
-  //       "currency": "EUR"
-  //     },
-  //     {
-  //       "plan": "KEF -> FCO",
-  //       "fly_at": "2022-09-23T19:20:00",
-  //       "price": 69.99,
-  //       "currency": "EUR"
-  //     },
-  //   ]
-  // },
-
-  const flights = rawFlights
-    .map(flight => {
-      // Implement when:
-      // price: null
-      if (flight.priceType === 'soldOut') return;
-
-      return flight.departureDates.map(departureDate => ({
-        plan,
-        fly_at: departureDate,
-        price: flight.price.amount,
-        currency: flight.price.currencyCode,
-      }));
-    })
-    .filter(Boolean)
-    .flat();
-
-  return {
-    [plan]: flights
-  }
-}
-
 async function getConnectionPricesForPeriod(departure, arrival, depDateFrom, depDateTo) {
   apiUrl = await getAPIVersionUrl();
   cookie = await getCookie();
 
-  let payload = {
-    'adultCount': 1,
-    'childCount': 0,
-    'infantCount': 0,
-    'flightList':[
-      {
-        'departureStation': departure,
-        'arrivalStation': arrival,
-        'from': depDateFrom,
-        'to': depDateTo
-      }
-    ],
-    'priceType': 'regular'
-  },
-  options = {
-    method: 'post',
-    url: apiUrl + '/search/timetable',
-    body: JSON.stringify(payload),
-    headers: {
-      'content-type': 'application/json; charset=utf-8',
-      'cookie': cookie,
-      'user-agent': USER_AGENT
-    }
-  };
-
-  let res;
-  try {
-    res = await asyncRequest(options);
-  } catch (error) {
-    throw Error(`Error on exctracting data for: ${departure}, ${arrival}, ${depDateFrom}, ${depDateTo} \n`, error)
-  }
-
-  if (res.statusCode !== 200) {
-    throw Error(`Bad status for: ${departure}, ${arrival}, ${depDateFrom}, ${depDateTo} \n`, `Request status ${res.statusCode}`)
-  }
-
-  let parsedBody;
-  try {
-    // outboundFlights: [{
-    //   "departureStation": "KEF",
-    //   "arrivalStation": "FCO",
-    //   "departureDate": "2022-09-23T00:00:00",
-    //   "price": {
-    //     "amount": 69.99,
-    //     "currencyCode": "EUR"
-    //   },
-    //   "priceType": "price",
-    //   "departureDates": [
-    //     "2022-09-23T19:20:00"
-    //   ],
-    //   "classOfService": "L",
-    //   "hasMacFlight": false
-    // }]
-    parsedBody = JSON.parse(res.body);
-  } catch (error) {
-    throw Error(`Error on parsing data for: ${departure}, ${arrival}, ${depDateFrom}, ${depDateTo} \n`, error)
-  }
-
-  console.info(`Successfully extracted data for: ${departure} -> ${arrival}, at ${depDateFrom} - ${depDateTo}`);
+  const outboundFlights = await connection.fetchForPeriod(apiUrl, cookie, {departure, arrival, depDateFrom, depDateTo});
 
   const plan = `${departure} -> ${arrival}`;
-  return formatConnection(plan, parsedBody.outboundFlights)
+  return connection.format(plan, outboundFlights)
 }
 
 module.exports = {
