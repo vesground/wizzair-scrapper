@@ -49,6 +49,13 @@ async function main() {
   const flightsToByConnection = await getWizzPrices(FLIGHTS_TO, timerange[0], timerange[1], maxPrice);
   const flightsFromByConnection = await getWizzPrices(FLIGHTS_FROM, timerange[0], timerange[1], maxPrice);
 
+  let introMsg = `Running at ${new Date()}`;
+
+  if (maxPrice) {
+    introMsg += `\nFilters:\nmax price - ${maxPrice}`;
+  }
+
+  await telegram.send(introMsg)
   await Promise.all(getNiceTelegramMsg(flightsToByConnection).map(msg => telegram.send(msg)));
   await Promise.all(getNiceTelegramMsg(flightsFromByConnection).map(msg => telegram.send(msg)));
 }
