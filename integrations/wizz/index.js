@@ -115,11 +115,11 @@ async function getPricesPeriod(departure, arrival, depDateFrom, depDateTo) {
   try {
     res = await asyncRequest(options);
   } catch (error) {
-    throw Error('Request error: ' + error)
+    throw Error(`Error on exctracting data for: ${departure}, ${arrival}, ${depDateFrom}, ${depDateTo} \n`, error)
   }
 
   if (res.statusCode !== 200) {
-    throw Error('Bad statusCode error: ' + res.statusCode);
+    throw Error(`Bad status for: ${departure}, ${arrival}, ${depDateFrom}, ${depDateTo} \n`, `Request status ${res.statusCode}`)
   }
 
   let parsedBody;
@@ -141,8 +141,10 @@ async function getPricesPeriod(departure, arrival, depDateFrom, depDateTo) {
     // }]
     parsedBody = JSON.parse(res.body);
   } catch (error) {
-    throw Error('Could not parse body. ' + error);
+    throw Error(`Error on parsing data for: ${departure}, ${arrival}, ${depDateFrom}, ${depDateTo} \n`, error)
   }
+
+  console.info(`Successfully extracted data for: ${departure} -> ${arrival}, at ${depDateFrom} - ${depDateTo}`);
 
   const plan = `${departure} -> ${arrival}`;
   return parsePlanFlights(plan, parsedBody.outboundFlights)
