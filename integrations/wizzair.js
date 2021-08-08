@@ -1,4 +1,3 @@
-'use strict';
 let request = require('request');
 let exec = require('child_process').exec;
 // let tor = require('tor-request');
@@ -77,7 +76,7 @@ class WizzApi {
   updateCookie() {
     this.cookie = null;
     this.cookieStartedRequest = false;
-    return this.getCookie(false).then((r) => {this.cookie = r;}).catch((error) => {logger.error('Failed to get cookie. ' + error);});
+    return this.getCookie(false).then((r) => {this.cookie = r;}).catch((error) => {console.error('Failed to get cookie. ' + error);});
   }
 
   getApiVersionUrl(cache = true, url = 'https://wizzair.com/static_fe/metadata.json') {
@@ -91,13 +90,13 @@ class WizzApi {
         } else {
           let resBody;
           try {
-	    // TODO: validate body is a valid JSON
-	    try {
+            // TODO: validate body is a valid JSON
+            try {
               resBody = JSON.parse(body);
             } catch (error) {
-              logger.error('Could not parse body. Trying fallback.');
+              console.error('Could not parse body. Trying fallback.');
               resBody = JSON.parse(body.substring(1, body.length));
-	    }
+            }
           } catch (error) {
             reject(Error('Could not parse body. ' + error));
           }
@@ -115,9 +114,11 @@ class WizzApi {
   updateApiVersionUrl() {
     let that = this;
     this.apiUrl = null;
-    return this.getApiVersionUrl(false).then((r) => {that.apiUrl = r}).catch((e) => logger.error('Failed to update API version' + e));
+    return this.getApiVersionUrl(false).then((r) => {that.apiUrl = r}).catch((e) => console.error('Failed to update API version' + e));
   }
 
+  // todo: 
+  // 1. get all connections to particular city
   getMap() {
     // [ 
     //   {
@@ -193,7 +194,7 @@ class WizzApi {
                   'content-type': 'application/json; charset=utf-8',
                   'cookie': cookie,
                   'user-agent': USER_AGENT
-		} 
+		            } 
               };
               return request.post(options, function(error, response, body) {
                 if (error) {
@@ -277,6 +278,8 @@ class WizzApi {
                   'user-agent': USER_AGENT
                 }
               };
+
+              console.log('options', options);
 
               return request.post(options, function(error, response, body) {
                 //console.log('body', body);
@@ -362,5 +365,7 @@ class WizzApi {
     return 'Wizz API url: ' + this.apiUrl;
   }
 }
+
+
 
 module.exports = WizzApi;
