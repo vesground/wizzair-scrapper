@@ -43,7 +43,113 @@ async function getCookie(cache = true) {
   }
 }
 
+function parsePlanFlights(plan, rawFlights) {
+  // {
+  //   "KEF -> FCO": [
+  //     {
+  //       "plan": "KEF -> FCO",
+  //       "fly_at": "2022-09-21T19:20:00",
+  //       "price": 59.99,
+  //       "currency": "EUR"
+  //     },
+  //     {
+  //       "plan": "KEF -> FCO",
+  //       "fly_at": "2022-09-23T19:20:00",
+  //       "price": 69.99,
+  //       "currency": "EUR"
+  //     },
+  //   ]
+  // },
+
+  const flights = rawFlights
+    .map(flight => {
+      // Implement when:
+      // price: null
+      if (flight.priceType === 'soldOut') return;
+
+      return flight.departureDates.map(departureDate => ({
+        plan,
+        fly_at: departureDate,
+        price: flight.price.amount,
+        currency: flight.price.currencyCode,
+      }));
+    })
+    .filter(Boolean)
+    .flat();
+
+  return {
+    [plan]: flights
+  }
+}
+
+async function getPricesPeriod(departure, arrival, depDateFrom, depDateTo) {
+  apiUrl = await getAPIVersionUrl();
+  cookie = await getCookie();
+
+  let payload = {
+    'adultCount': 1,
+    'childCount': 0,
+    'infantCount': 0,
+    'flightList':[
+      {
+        'departureStation': departure,
+        'arrivalStation': arrival,
+        'from': depDateFrom,
+        'to': depDateTo
+      }
+    ],
+    'priceType': 'regular'
+  },
+  options = {
+    method: 'post',
+    url: apiUrl + '/search/timetable',
+    body: JSON.stringify(payload),
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      'cookie': cookie,
+      'user-agent': USER_AGENT
+    }
+  };
+
+  let res;
+  try {
+    res = await asyncRequest(options);
+  } catch (error) {
+    throw Error('Request error: ' + error)
+  }
+
+  if (res.statusCode !== 200) {
+    throw Error('Bad statusCode error: ' + res.statusCode);
+  }
+
+  let parsedBody;
+  try {
+    // outboundFlights: [{
+    //   "departureStation": "KEF",
+    //   "arrivalStation": "FCO",
+    //   "departureDate": "2022-09-23T00:00:00",
+    //   "price": {
+    //     "amount": 69.99,
+    //     "currencyCode": "EUR"
+    //   },
+    //   "priceType": "price",
+    //   "departureDates": [
+    //     "2022-09-23T19:20:00"
+    //   ],
+    //   "classOfService": "L",
+    //   "hasMacFlight": false
+    // }]
+    parsedBody = JSON.parse(res.body);
+  } catch (error) {
+    throw Error('Could not parse body. ' + error);
+  }
+
+  const plan = `${departure} -> ${arrival}`;
+  return parsePlanFlights(plan, parsedBody.outboundFlights)
+}
+
 module.exports = {
   getAPIVersionUrl,
   getCookie,
+  getPricesPeriod,
 };

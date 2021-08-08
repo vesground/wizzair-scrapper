@@ -32,7 +32,22 @@ const request = require('request');
    })
  }
 
+function sleep(duration) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => resolve(), duration);
+  })
+}
+
+async function waitUntil(getCondition) {
+  while(!getCondition()) {
+    await sleep(500);
+  }
+}
+
 module.exports = {
   execShellCommand,
   asyncRequest,
+  strMapToObj,
+  objToStrMap,
+  waitUntil,
 }
