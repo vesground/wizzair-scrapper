@@ -37,7 +37,7 @@ function format(plan, rawFlights) {
 
 async function fetchForPeriod(apiUrl, cookie, params = {}) {
   let payload = {
-    'adultCount': 1,
+    'adultCount': 3,
     'childCount': 0,
     'infantCount': 0,
     'flightList':[

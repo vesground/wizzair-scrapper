@@ -44,7 +44,7 @@ async function getWizzPrices(direction, startAt, endAt, maxPrice) {
 
 async function main() {
   const timerange = [new Date("2022-09-20"), new Date("2022-10-04")];
-  const maxPrice = 50;
+  const maxPrice = 20;
 
   const flightsToByConnection = await getWizzPrices(FLIGHTS_TO, timerange[0], timerange[1], maxPrice);
   const flightsFromByConnection = await getWizzPrices(FLIGHTS_FROM, timerange[0], timerange[1], maxPrice);
