@@ -1,0 +1,1 @@
+docker build . -t wizz | docker save --output public/wizz.tar wizz | scp -i "private/wizz.pem" public/wizz.tar ubuntu@ec2-3-131-133-102.us-east-2.compute.amazonaws.com:~/
