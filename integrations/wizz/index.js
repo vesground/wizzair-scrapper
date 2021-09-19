@@ -44,7 +44,7 @@ async function getCookie(cache = true) {
 
   let cookies;
   try {
-    cookies = (await asyncRequest(options)).toJSON().headers['set-cookie'];
+    cookies = (await asyncRequest(options)).headers['set-cookie'];
   } catch (error) {
     throw Error(`Error fetching cookies \n`, error)
   }
